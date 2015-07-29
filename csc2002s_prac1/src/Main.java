@@ -15,45 +15,33 @@ public class Main
 {
     public static void main(String[] args) throws FileNotFoundException
     {
-        double[] startArray;
-        double[] endArray;
-        Scanner userScan = new Scanner(System.in);
+        Scanner scan = new Scanner(System.in);
 
-        String inputFile = userScan.next();
-        int filterSize = userScan.nextInt();
-        String outputFile = userScan.next();
+        //single line of user input split into 3 tokens
+        String inputFile = scan.next();
+        int filterSize = scan.nextInt();
+        String outputFile = scan.next();
 
-        //System.out.println(inputFile + " " + filterSize + " " + outputFile);
-        File file = new File(inputFile);
-        Scanner fileScan;
+        File inFile = new File(inputFile);
+        scan = new Scanner(inFile);
 
-        System.out.println("Trying to read.........\n\n");
+        int inputSize = scan.nextInt();
 
-        fileScan = new Scanner(file);
-
-        int inputSize = fileScan.nextInt();
-
-        startArray = new double[inputSize];
-        endArray = new double[inputSize];
+        double[] startArray = new double[inputSize];
+        double[] endArray = new double[inputSize];
 
         for (int i = 0; i < inputSize; i++)
         {
-            fileScan.nextInt();
+            scan.nextInt();
 
-            double nextDouble = fileScan.nextDouble();
+            double nextDouble = Double.parseDouble(scan.nextLine());
             startArray[i] = nextDouble;
+            
             if (i < filterSize / 2 || i >= inputSize - (filterSize / 2))
             {
                 endArray[i] = nextDouble;
             }
         }
-//
-//        System.out.println("START");
-//
-//        for (double element : startArray)
-//        {
-//            System.out.println(element);
-//        }
 
         for (int i = filterSize / 2; i < inputSize - filterSize / 2; i++)
         {
@@ -68,12 +56,13 @@ public class Main
 
             endArray[i] = tempArray.get(filterSize / 2);
         }
-
-//        System.out.println("END2");
-//
-//        for (double element : endArray)
-//        {
-//            System.out.println(element);
-//        }
+        
+        PrintStream outStream = new PrintStream(new FileOutputStream(outputFile));
+        
+        outStream.println(inputSize);
+        for (int i = 0; i < inputSize; i++)
+        {
+            outStream.println((i+1) + " " + endArray[i]);
+        }
     }
 }
