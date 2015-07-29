@@ -1,0 +1,6 @@
+*.txt
+*.class
+SampleDataForAssignment1/
+nbproject/
+build/
+*.xml
