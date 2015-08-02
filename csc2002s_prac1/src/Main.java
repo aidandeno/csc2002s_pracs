@@ -1,68 +1,84 @@
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.PriorityQueue;
 import java.util.Scanner;
 
 /**
- *
+ * Naive algorithm for filtering a collection of values according to their
+ * medians This program compares the sequential implementation to the parallel
+ * one.
  *
  * @author Aidan de Nobrega DNBAID001
  * @since 29/07/2015
  */
 public class Main
 {
+    static File inputFile;
+    static int filterSize;
+    static File outputFile;
+    static int inputSize;
+
     public static void main(String[] args) throws FileNotFoundException
     {
         Scanner scan = new Scanner(System.in);
+        double timesSum = 0;
 
-        //single line of user input split into 3 tokens
-        String inputFile = scan.next();
-        int filterSize = scan.nextInt();
-        String outputFile = scan.next();
+        System.out.print("Submit input in the following form:"
+                + "\n<input file><filter size><output file>\n>>>");
+        //Single line of user input split into 3 tokens
+        inputFile = new File(scan.next());
+        filterSize = scan.nextInt();
+        outputFile = new File(scan.next());
 
-        File inFile = new File(inputFile);
-        scan = new Scanner(inFile);
+        //Input check
+        while (filterSize % 2 == 0 || filterSize < 3 || filterSize > 21)
+        {
+            System.out.println("Your filter size must be odd and "
+                    + "range from 3 to 21 inclusive.");
 
-        int inputSize = scan.nextInt();
+            System.out.print("Submit input in the following form:"
+                    + "\n<input file><filter size><output file>\n>>>");
+            inputFile = new File(scan.next());
+            filterSize = scan.nextInt();
+            outputFile = new File(scan.next());
+        }
 
-        double[] startArray = new double[inputSize];
-        double[] endArray = new double[inputSize];
+        //Scanner now reads from the input file
+        scan = new Scanner(inputFile);
 
+        //First line in submitted .txt file. Number of subsequent lines.
+        inputSize = scan.nextInt();
+
+        //Arrays to hold the unfiltered and filtered values respectively.
+        ArrayList<Double> startArray = new ArrayList<>();
+
+        //Iterate through the input
         for (int i = 0; i < inputSize; i++)
         {
+            //Scan and discard line number
             scan.nextInt();
 
+            //Scan nextLine() and cast to double to keep negative operator
+            //Values are added to initial array
             double nextDouble = Double.parseDouble(scan.nextLine());
-            startArray[i] = nextDouble;
-            
-            if (i < filterSize / 2 || i >= inputSize - (filterSize / 2))
-            {
-                endArray[i] = nextDouble;
-            }
+            startArray.add(nextDouble);
         }
 
-        for (int i = filterSize / 2; i < inputSize - filterSize / 2; i++)
-        {
-            ArrayList<Double> tempArray = new ArrayList<>(filterSize);
+//        for (Double element : startArray)
+//        {
+//            System.out.println(element.toString());
+//        }
+        SeqFilterObject.run(startArray);
 
-            for (int k = i - (filterSize / 2); k <= i + (filterSize / 2); k++)
-            {
-                tempArray.add(startArray[k]);
-            }
+        PrintStream outStream = new PrintStream(outputFile);
 
-            Collections.sort(tempArray);
-
-            endArray[i] = tempArray.get(filterSize / 2);
-        }
-        
-        PrintStream outStream = new PrintStream(new FileOutputStream(outputFile));
-        
+        //Size of the file and all values are printed to file
         outStream.println(inputSize);
+
         for (int i = 0; i < inputSize; i++)
         {
-            outStream.println((i+1) + " " + endArray[i]);
+            outStream.println((i + 1) + " " + SeqFilterObject.endArray.get(i));
         }
+
     }
 }
