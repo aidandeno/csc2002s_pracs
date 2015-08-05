@@ -75,7 +75,7 @@ public class Main
                     + "range from 3 to 21 inclusive.");
 
             System.out.print("Submit input in the following form:"
-                    + "\n<input file> <filter sizeinp4.txt 3 out1.txt> <output file>\n>>> ");
+                    + "\n<input file> <filter size> <output file>\n>>> ");
             inputFile = new File(scan.next());
             filterSize = scan.nextInt();
             outputFile = new File(scan.next());
@@ -87,7 +87,9 @@ public class Main
         filterType = filterTypeAnswer == 1;
 
         //User chooses from 1 of 3 impementations
-        System.out.print("Method?\n(1) Sequential\n(2) Parallel (ForkJoin Framework)\n(3) Parallel (Standard Threads)\nType '1', '2', or '3'\n>>> ");
+        System.out.print("Method?\n(1) Sequential\n(2) Parallel (ForkJoin "
+                + "Framework)\n(3) Parallel (Standard Threads)\nType '1', '2', "
+                + "or '3'\n>>> ");
         int method = scan.nextInt();
 
         scan = new Scanner(inputFile);
@@ -146,7 +148,7 @@ public class Main
                     }
                     break;
                 default:
-                    System.out.println("You did not type a 1 or a 2. Exiting.");
+                    System.out.println("You did not choose a valid option. Exiting.");
                     System.exit(0);
                     break;
             }
@@ -184,7 +186,7 @@ public class Main
             System.out.println("Adjusted parallel (standard threads) run average:  " + average + " milliseconds.");
         }
 
-        //All that follow is for printing to the output file.
+        //All that follows is for printing to the output file.
         PrintStream outStream = new PrintStream(outputFile);
 
         //Size of the file and all values are printed to file

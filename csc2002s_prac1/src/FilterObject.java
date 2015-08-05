@@ -4,8 +4,8 @@ import java.util.Collections;
 import java.util.concurrent.RecursiveAction;
 
 /**
- *  Filters subarrays according to appropriate implementation and filtering type
- * 
+ * Filters subarrays according to appropriate implementation and filtering type
+ *
  * @author Aidan
  */
 public class FilterObject extends RecursiveAction
@@ -15,7 +15,7 @@ public class FilterObject extends RecursiveAction
     /**
      * The threshold at which parallel division is no longer necessary
      */
-    private static final int SEQUENTIAL_THRESHOLD = 100;
+    private static final int SEQUENTIAL_THRESHOLD = 10;
 
     /**
      * The lower index of the subarray to be filtered
@@ -33,7 +33,6 @@ public class FilterObject extends RecursiveAction
     private final boolean filterType;
 
     //******METHODS******//
-    
     public FilterObject(int lo, int hi, boolean filterType)
     {
         this.lo = lo;
@@ -56,9 +55,7 @@ public class FilterObject extends RecursiveAction
             seqFilter();
         }
         else
-        {   /*join() unnecessary as program applies filter directly to values
-             of Main.startArray*/
-
+        {
             FilterObject left = new FilterObject(lo, (hi + lo) / 2, filterType);
             FilterObject right = new FilterObject((hi + lo) / 2, hi, filterType);
             left.fork();
@@ -69,7 +66,7 @@ public class FilterObject extends RecursiveAction
 
     /**
      * Sequential filtering of a subarray
-     * 
+     *
      * Applies either median filtering or mean filtering according to user input
      */
     public void seqFilter()
@@ -98,6 +95,7 @@ public class FilterObject extends RecursiveAction
 
     /**
      * Gets median value from an array
+     *
      * @param array Array to be evaluated
      * @return The median of the array
      */
@@ -106,9 +104,10 @@ public class FilterObject extends RecursiveAction
         Collections.sort(array);
         return array.get(Main.filterSize / 2);
     }
-    
+
     /**
      * Gets mean value from an array
+     *
      * @param array Array to be evaluated
      * @return The mean of the array
      */

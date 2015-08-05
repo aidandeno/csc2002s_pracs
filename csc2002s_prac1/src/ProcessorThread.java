@@ -1,12 +1,13 @@
+
 /**
  * Filters subarrays according to filtering type using standard threads
- * 
+ *
  * @author Aidan
  */
 public class ProcessorThread extends Thread
 {
     //******FIELDS******//
-    
+
     /**
      * The lower index of the subarray to be filtered
      */
@@ -23,7 +24,6 @@ public class ProcessorThread extends Thread
     private final boolean filterType;
 
     //******METHODS******//
-    
     public ProcessorThread(int lo, int hi, boolean filterType)
     {
         this.lo = lo;
