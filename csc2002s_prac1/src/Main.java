@@ -1,23 +1,24 @@
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Scanner;
 import java.util.concurrent.ForkJoinPool;
 
 /**
- * Naive algorithm for filtering a collection of values according to either 
- * their medians or means (user-determined). This program compares a sequential 
- * implementation to parallel ones. There are 2 parallel implementations: one 
+ * Naive algorithm for filtering a collection of values according to either
+ * their medians or means (user-determined). This program compares a sequential
+ * implementation to parallel ones. There are 2 parallel implementations: one
  * using the Java ForkJoin Framework, and another using standard threads (also
  * user-determined).
- * 
+ *
  * @author Aidan de Nobrega DNBAID001
  * @since 29/07/2015
  */
 public class Main
 {
     //******FIELDS******//
-    
+
     public static final ForkJoinPool pool = new ForkJoinPool();
 
     /**
@@ -34,28 +35,25 @@ public class Main
      * The size of the window over which filtering will take place.
      */
     public static int filterSize;
-    
+
     /**
-     * true -> median filtering
-     * false -> mean filtering
+     * true -> median filtering false -> mean filtering
      */
     public static boolean filterType;
 
     //******METHODS******//
-    
     /**
      * Main process.
-     * 
-     * Takes user input, reads data from inputFile, applies 
-     * appropriate filtering method with appropriate implementation, records
-     * wall-time efficiency, and prints to output file in same format as input
-     * file. 
-     * 
+     *
+     * Takes user input, reads data from inputFile, applies appropriate
+     * filtering method with appropriate implementation, records wall-time
+     * efficiency, and prints to output file in same format as input file.
+     *
      * Note: the wall-time efficiency is only recorded over the period during
      * which the filtering is undertaken. It stops before the program prints to
      * file. Time is recorded in milliseconds because of the infinitesimal
      * nature of the results.
-     * 
+     *
      * @param args None
      * @throws FileNotFoundException
      */
@@ -77,17 +75,17 @@ public class Main
                     + "range from 3 to 21 inclusive.");
 
             System.out.print("Submit input in the following form:"
-                    + "\n<input file> <filter size> <output file>\n>>> ");
+                    + "\n<input file> <filter sizeinp4.txt 3 out1.txt> <output file>\n>>> ");
             inputFile = new File(scan.next());
             filterSize = scan.nextInt();
             outputFile = new File(scan.next());
         }
 
         //User chooses whether to run a median or mean filter
-        System.out.println("Filter Type?\n(1) Median\n(2) Mean\nType '1' or '2'\n>>> ");
+        System.out.print("Filter Type?\n(1) Median\n(2) Mean\nType '1' or '2'\n>>> ");
         int filterTypeAnswer = scan.nextInt();
         filterType = filterTypeAnswer == 1;
-        
+
         //User chooses from 1 of 3 impementations
         System.out.print("Method?\n(1) Sequential\n(2) Parallel (ForkJoin Framework)\n(3) Parallel (Standard Threads)\nType '1', '2', or '3'\n>>> ");
         int method = scan.nextInt();
@@ -118,12 +116,12 @@ public class Main
         {
             finalArray.set(i, startArray.get(i));
         }
-        
+
         //Filtering will run within the borders
         FilterObject filt = new FilterObject(filterSize / 2,
                 startArray.size() - (filterSize / 2), filterType);
 
-        double timesSum = 0;//to calculate average run time
+        ArrayList<Double> times = new ArrayList<>(20);//to calculate average run time
 
         for (int run = 1; run < 21; run++) //algorithm will run 20 times
         {
@@ -152,32 +150,38 @@ public class Main
                     System.exit(0);
                     break;
             }
-            
+
             //The last few elements outside the borders are added to finalArray
             for (int i = startArray.size() - (filterSize / 2); i < startArray.size(); i++)
             {
                 finalArray.set(i, startArray.get(i));
             }
-            
+
             //Calculates time elapsed per run
-            double timeElapsed = (System.nanoTime() - startTime) / 100000000.0;
-            timesSum += timeElapsed;
+            Double timeElapsed = (System.nanoTime() - startTime) / 1000000.0;
+            times.add(run - 1, timeElapsed);
             System.out.println("Run " + run + ": " + timeElapsed + " milliseconds.");
         }
 
-        //Calculates average run time over 20 runs
-        double average = timesSum / 20;
+        //Calculates average run time over 20 runs after removing highest value
+        times.remove(Collections.max(times));
+        double timesSum = 0;
+        for (Double e : times)
+        {
+            timesSum += e;
+        }
+        double average = timesSum / 19;
         if (method == 1)
         {
-            System.out.println("Sequential run average: " + average + " milliseconds.");
+            System.out.println("Adjusted sequential run average: " + average + " milliseconds.");
         }
         else if (method == 2)
         {
-            System.out.println("Parallel (ForkJoin framework) run average:  " + average + " milliseconds.");
+            System.out.println("Adjusted parallel (ForkJoin framework) run average:  " + average + " milliseconds.");
         }
         else
         {
-            System.out.println("Parallel (standard threads) run average:  " + average + " milliseconds.");
+            System.out.println("Adjusted parallel (standard threads) run average:  " + average + " milliseconds.");
         }
 
         //All that follow is for printing to the output file.

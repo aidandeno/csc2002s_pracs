@@ -63,6 +63,7 @@ public class FilterObject extends RecursiveAction
             FilterObject right = new FilterObject((hi + lo) / 2, hi, filterType);
             left.fork();
             right.compute();
+            left.join();
         }
     }
 
