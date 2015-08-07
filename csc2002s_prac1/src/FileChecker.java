@@ -18,17 +18,15 @@ public class FileChecker
         System.out.print("Type the names of the two files separated by space\n>>> ");
         File file1 = new File(scan.next());
         File file2 = new File(scan.next());
-
-        ArrayList<Double> array1 = new ArrayList<>();
-        ArrayList<Double> array2 = new ArrayList<>();
-
+       
         scan = new Scanner(file1);
         int inputSize1 = scan.nextInt();
+        double[] array1 = new double[inputSize1];
         for (int i = 0; i < inputSize1; i++)
         {
             scan.nextInt();
             double nextDouble = Double.parseDouble(scan.nextLine());
-            array1.add(nextDouble);
+            array1[i] = nextDouble;
         }
 
         scan = new Scanner(file2);
@@ -38,16 +36,18 @@ public class FileChecker
             System.out.println("File sizes are different. Exiting.");
             System.exit(0);
         }
-        for (int i = 0; i < inputSize2; i++)
+        
+        double[] array2 = new double[inputSize1];
+        for (int i = 0; i < inputSize1; i++)
         {
             scan.nextInt();
             double nextDouble = Double.parseDouble(scan.nextLine());
-            array2.add(nextDouble);
+            array2[i] = nextDouble;
         }
 
         for (int i = 0; i < inputSize1; i++)
         {
-            if (!Objects.equals(array1.get(i), array2.get(i)))
+            if (array1[i] != array2[i])
             {
                 System.out.println("Elements at " + (i + 1) + " not equal. Exiting.");
                 System.exit(0);
