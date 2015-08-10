@@ -15,7 +15,7 @@ public class FilterObject extends RecursiveAction
     /**
      * The threshold at which parallel division is no longer necessary
      */
-    private static final int SEQUENTIAL_THRESHOLD = 10;
+    private static final int SEQUENTIAL_THRESHOLD = 1000;
 
     /**
      * The lower index of the subarray to be filtered

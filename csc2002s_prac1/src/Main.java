@@ -57,7 +57,7 @@ public class Main
      * @param args None
      * @throws FileNotFoundException
      */
-    public static void main(String[] args) throws FileNotFoundException
+    public static void main(String[] args) throws FileNotFoundException, InterruptedException
     {
         Scanner scan = new Scanner(System.in);
 
@@ -124,6 +124,7 @@ public class Main
                 startArray.size() - (filterSize / 2), filterType);
 
         ArrayList<Double> times = new ArrayList<>(20);//to calculate average run time
+        int numP = Runtime.getRuntime().availableProcessors();
 
         for (int run = 1; run < 21; run++) //algorithm will run 20 times
         {
@@ -135,17 +136,19 @@ public class Main
                     filt.seqFilter();
                     break;
                 case 2: //ForkJoin Framework
-                    pool.invoke(filt);
+                    pool.invoke(new FilterObject(filterSize / 2,
+                            startArray.size() - (filterSize / 2), filterType));
                     break;
                 case 3://Standard Threads (4 threads)
-                    ProcessorThread[] threads = new ProcessorThread[4];
+                    ProcessorThread[] threads = new ProcessorThread[numP];
                     int subArraySize = inputSize - (filterSize - 1);
-                    for (int i = 0; i < 4; i++)
+                    for (int i = 0; i < numP; i++)
                     {
-                        threads[i] = new ProcessorThread(((i * subArraySize) / 4) + (filterSize / 2),
-                                (((i + 1) * subArraySize) / 4) + (filterSize / 2), filterType);
+                        threads[i] = new ProcessorThread(((i * subArraySize) / numP) + (filterSize / 2),
+                                (((i + 1) * subArraySize) / numP) + (filterSize / 2), filterType);
                         threads[i].start();
                     }
+                    while (ProcessorThread.activeCount() != 1){} //the program only continues parsing if the threads have all executed completely.
                     break;
                 default:
                     System.out.println("You did not choose a valid option. Exiting.");
@@ -162,7 +165,7 @@ public class Main
             //Calculates time elapsed per run
             Double timeElapsed = (System.nanoTime() - startTime) / 1000000.0;
             times.add(run - 1, timeElapsed);
-            System.out.println("Run " + run + ": " + timeElapsed + " milliseconds.");
+//            System.out.println("Run " + run + ": " + timeElapsed + " milliseconds.");
         }
 
         //Calculates average run time over 20 runs after removing highest value
@@ -186,15 +189,15 @@ public class Main
             System.out.println("Adjusted parallel (standard threads) run average:  " + average + " milliseconds.");
         }
 
-        //All that follows is for printing to the output file.
-        PrintStream outStream = new PrintStream(outputFile);
-
-        //Size of the file and all values are printed to file
-        outStream.println(startArray.size());
-
-        for (int i = 0; i < startArray.size(); i++)
-        {
-            outStream.println((i + 1) + " " + finalArray.get(i));
-        }
+//        //All that follows is for printing to the output file.
+//        PrintStream outStream = new PrintStream(outputFile);
+//
+//        //Size of the file and all values are printed to file
+//        outStream.println(startArray.size());
+//
+//        for (int i = 0; i < startArray.size(); i++)
+//        {
+//            outStream.println((i + 1) + " " + finalArray.get(i));
+//        }
     }
 }
