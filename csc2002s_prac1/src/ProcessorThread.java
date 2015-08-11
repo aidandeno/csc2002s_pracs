@@ -2,7 +2,8 @@
 /**
  * Filters subarrays according to filtering type using standard threads
  *
- * @author Aidan
+ * @author Aidan de Nobrega DNBAID001
+ * @since 29/07/2015
  */
 public class ProcessorThread extends Thread
 {

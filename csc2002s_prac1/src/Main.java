@@ -61,12 +61,10 @@ public class Main
     {
         Scanner scan = new Scanner(System.in);
 
-        System.out.print("Submit input in the following form:"
-                + "\n<input file> <filter size> <output file>\n>>> ");
         //Single line of user input split into 3 tokens
-        File inputFile = new File(scan.next());
-        filterSize = scan.nextInt();
-        File outputFile = new File(scan.next());
+        File inputFile = new File(args[0]);
+        filterSize = Integer.parseInt(args[1]);
+        File outputFile = new File(args[2]);
 
         //Input validation
         while (filterSize % 2 == 0 || filterSize < 3 || filterSize > 21)
@@ -137,7 +135,7 @@ public class Main
                     break;
                 case 2: //ForkJoin Framework
                     pool.invoke(new FilterObject(filterSize / 2,
-                            startArray.size() - (filterSize / 2), filterType));
+                            startArray.size() - (filterSize / 2), filterType)); //anonymous object pass
                     break;
                 case 3://Standard Threads (4 threads)
                     ProcessorThread[] threads = new ProcessorThread[numP];
@@ -148,7 +146,10 @@ public class Main
                                 (((i + 1) * subArraySize) / numP) + (filterSize / 2), filterType);
                         threads[i].start();
                     }
-                    while (ProcessorThread.activeCount() != 1){} //the program only continues parsing if the threads have all executed completely.
+                    while (ProcessorThread.activeCount() != 1)
+                    {
+                        //the program only continues parsing if the threads have all executed completely.
+                    }
                     break;
                 default:
                     System.out.println("You did not choose a valid option. Exiting.");
@@ -165,7 +166,7 @@ public class Main
             //Calculates time elapsed per run
             Double timeElapsed = (System.nanoTime() - startTime) / 1000000.0;
             times.add(run - 1, timeElapsed);
-//            System.out.println("Run " + run + ": " + timeElapsed + " milliseconds.");
+            System.out.println("Run " + run + ": " + timeElapsed + " milliseconds.");
         }
 
         //Calculates average run time over 20 runs after removing highest value
@@ -189,15 +190,17 @@ public class Main
             System.out.println("Adjusted parallel (standard threads) run average:  " + average + " milliseconds.");
         }
 
-//        //All that follows is for printing to the output file.
-//        PrintStream outStream = new PrintStream(outputFile);
-//
-//        //Size of the file and all values are printed to file
-//        outStream.println(startArray.size());
-//
-//        for (int i = 0; i < startArray.size(); i++)
-//        {
-//            outStream.println((i + 1) + " " + finalArray.get(i));
-//        }
+        //All that follows is for printing to the output file.
+        PrintStream outStream = new PrintStream(outputFile);
+
+        System.out.print("Printing to file...");
+        //Size of the file and all values are printed to file
+        outStream.println(startArray.size());
+
+        for (int i = 0; i < startArray.size(); i++)
+        {
+            outStream.println((i + 1) + " " + finalArray.get(i));
+        }
+        System.out.println("Finished!");
     }
 }

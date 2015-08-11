@@ -6,7 +6,8 @@ import java.util.concurrent.RecursiveAction;
 /**
  * Filters subarrays according to appropriate implementation and filtering type
  *
- * @author Aidan
+ * @author Aidan de Nobrega DNBAID001
+ * @since 29/07/2015
  */
 public class FilterObject extends RecursiveAction
 {

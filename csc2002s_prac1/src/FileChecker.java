@@ -4,8 +4,11 @@ import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 /**
+ * Program to compare two files for equality. Doesn't take command line
+ * arguments.
  *
- * @author Aidan
+ * @author Aidan de Nobrega DNBAID001
+ * @since 29/07/2015
  */
 public class FileChecker
 {
