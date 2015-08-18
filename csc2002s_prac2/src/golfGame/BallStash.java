@@ -6,15 +6,21 @@ import java.util.concurrent.BlockingQueue;
 public class BallStash
 {
     //static variables
-    private static int sizeStash = 20;
-    private static int sizeBucket = 4;
-    //ADD variables: a collection of golf balls, called stash
+    private static int sizeStash;
+    private static int sizeBucket;
+    public static BlockingQueue<golfBall> stash;
 
-    //ADD methods:
-    //getBucketBalls
-    //addBallsToStash
-    //getBallsInStash - return number of balls in the stash
-    //getters and setters for static variables - you need to edit these
+    //ADDED CONSTRUCTOR
+    BallStash()
+    {
+        stash = new ArrayBlockingQueue<>(sizeStash, true);
+        for (int i = 0; i < sizeStash; i++)
+        {
+            stash.add(new golfBall());
+        }
+    }
+
+    //TODO: getters and setters for static variables - you need to edit these
     public static void setSizeBucket(int noBalls)
     {
         sizeBucket = noBalls;
@@ -35,4 +41,23 @@ public class BallStash
         return sizeStash;
     }
 
+    //CHECK CONCURRENCY ISSUES
+    public synchronized golfBall[] getBucketBalls(golfBall[] golferBucket) throws InterruptedException
+    {
+        for (int i = 0; i < sizeBucket; i++)
+        {
+            golferBucket[i] = stash.take();
+        }
+        return golferBucket;
+    }
+
+    public void addBallsToStash()
+    {
+        //ADD CODE
+    }
+
+    public synchronized int getBallsInStash()
+    {
+        return stash.size();
+    }
 }

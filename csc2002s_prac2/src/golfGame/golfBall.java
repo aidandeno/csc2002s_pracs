@@ -2,7 +2,7 @@ package golfGame;
 
 public class golfBall
 {
-    //add mechanisms for thread saftey
+    //add mechanisms for thread safety
     private static int noBalls;
     private int myID;
 

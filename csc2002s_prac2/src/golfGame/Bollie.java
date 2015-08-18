@@ -24,10 +24,9 @@ public class Bollie extends Thread
     @Override
     public void run()
     {
-
         //while True
         golfBall[] ballsCollected = new golfBall[sharedStash.getSizeStash()];
-        while (done.get() != true)
+        while (!done.get())
         {
             try
             {
