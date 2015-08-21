@@ -2,62 +2,74 @@ package golfGame;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class BallStash
 {
     //static variables
     private static int sizeStash;
     private static int sizeBucket;
-    public static BlockingQueue<golfBall> stash;
+    static BlockingQueue<golfBall> stash;
+    private AtomicInteger ballsInStash;
 
-    //ADDED CONSTRUCTOR
     BallStash()
     {
         stash = new ArrayBlockingQueue<>(sizeStash, true);
+        ballsInStash = new AtomicInteger(sizeStash);
         for (int i = 0; i < sizeStash; i++)
         {
             stash.add(new golfBall());
         }
     }
 
-    //TODO: getters and setters for static variables - you need to edit these
-    public static void setSizeBucket(int noBalls)
+    static void setSizeBucket(int noBalls)
     {
         sizeBucket = noBalls;
     }
 
-    public static int getSizeBucket()
+    static int getSizeBucket()
     {
         return sizeBucket;
     }
 
-    public static void setSizeStash(int noBalls)
+    static void setSizeStash(int noBalls)
     {
         sizeStash = noBalls;
     }
 
-    public static int getSizeStash()
+    static int getSizeStash()
     {
         return sizeStash;
     }
 
-    //CHECK CONCURRENCY ISSUES
-    public synchronized golfBall[] getBucketBalls(golfBall[] golferBucket) throws InterruptedException
+    golfBall[] getBucketBalls(golfBall[] golferBucket) throws InterruptedException
     {
-        for (int i = 0; i < sizeBucket; i++)
+        synchronized (this)
         {
-            golferBucket[i] = stash.take();
+            for (int i = 0; i < sizeBucket; i++)
+            {
+                golferBucket[i] = stash.take();
+            }
+            ballsInStash.set(stash.size());
+            return golferBucket;
         }
-        return golferBucket;
     }
 
-    public void addBallsToStash()
+    void addBallsToStash(ArrayBlockingQueue<golfBall> ballsCollected)
     {
-        //ADD CODE
+        synchronized (this)
+        {
+            ballsCollected.drainTo(stash);
+            ballsInStash.set(stash.size());
+        }
+
     }
 
-    public synchronized int getBallsInStash()
+    int getBallsInStash()
     {
-        return stash.size();
+        synchronized (this)
+        {
+            return ballsInStash.get();
+        }
     }
 }

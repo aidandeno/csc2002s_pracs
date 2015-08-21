@@ -19,8 +19,8 @@ public class Golfer extends Thread
     private int myID;
 
     private golfBall[] golferBucket;
-    private BallStash sharedStash; //link to shared stash
-    private Range sharedField; //link to shared field
+    private final BallStash sharedStash; //link to shared stash
+    private final Range sharedField; //link to shared field
     private Random swingTime;
 
     Golfer(BallStash stash, Range field, AtomicBoolean cartFlag, AtomicBoolean doneFlag)
@@ -56,12 +56,19 @@ public class Golfer extends Thread
         while (!done.get())
         {
             System.out.println(">>> Golfer #" + myID + " trying to fill bucket "
-                    + "with " + getBallsPerBucket() + " balls.");
-            synchronized (this)
+                    + "with " + ballsPerBucket + " balls.");
+            while (sharedStash.getBallsInStash() < ballsPerBucket)
+            {
+            }
+            /*
+             When golfers get balls, only one of them can actually fill up at a time,
+             otherwise getBallsInStash() will subtract multiple fills at once.
+             */
+
+            synchronized (sharedStash)
             {
                 try
                 {
-
                     golferBucket = sharedStash.getBucketBalls(golferBucket);
                 }
                 catch (InterruptedException e)
@@ -72,26 +79,34 @@ public class Golfer extends Thread
                         + getBallsPerBucket() + " balls (remaining stash = "
                         + sharedStash.getBallsInStash() + ")");
             }
-            for (int b = 0; b < ballsPerBucket; b++)
+            if (!done.get())
             {
-                //for every ball in bucket
-                try
+                for (int b = 0; b < ballsPerBucket; b++)
                 {
-                    sleep(swingTime.nextInt(2000));
-                    if (!cartOnField.get())
+                    try
                     {
-                        sharedField.hitBallOntoField(golferBucket[b]);
-                        System.out.println("Golfer #" + myID + " hit ball #" + golferBucket[b].getID() + " onto field");
+                        sleep(swingTime.nextInt(2000));
+                        synchronized (sharedField)
+                        {
+                            while (cartOnField.get())
+                            {
+                            }
+                            sharedField.hitBallOntoField(golferBucket[b]);
+                            System.out.println("Golfer #" + myID + " hit ball #" + golferBucket[b].getID() + " onto field");
+                        }
+                    }
+                    catch (InterruptedException e)
+                    {
+                        Logger.getLogger(Golfer.class.getName()).log(Level.SEVERE, null, e);
+                        e.getMessage();
                     }
                 }
-                catch (InterruptedException e)
-                {
-                    Logger.getLogger(Golfer.class.getName()).log(Level.SEVERE, null, e);
-                } //      swing
-
-                //!!wait for cart if necessary if cart there
             }
-
+            else
+            {
+                this.stop();
+            }
         }
+
     }
 }
