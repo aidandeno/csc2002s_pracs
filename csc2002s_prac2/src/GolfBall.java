@@ -1,5 +1,3 @@
-package golfGame;
-
 /**
  * Golf balls are used to fill the central supply stash, are played by golfers,
  * and then collected by Bollie who replenishes the stash. Golf balls are not
