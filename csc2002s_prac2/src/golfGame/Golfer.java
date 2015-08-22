@@ -2,111 +2,139 @@ package golfGame;
 
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Golfers who acquire a bucket of balls (size determined by user) and proceed
+ * to shoot them onto the driving range. Golfers cannot shoot when Bollie is on
+ * the field collecting balls. Golfers wait in an unordered line to fill their
+ * buckets, but multiple golfers cannot fill their buckets at the same time.
+ *
+ * @author Aidan Gilles de Nobrega DNBAID001
+ * @since 22/08/2015
+ */
 public class Golfer extends Thread
 {
+    //===CLASS VARIABLES===//
+    /**
+     * The number of golfers on the driving range. This value is used to deter-
+     * mine each golfer's ID.
+     */
+    private static int noGolfers = 0;
 
-    //remember to ensure thread safety
-    private AtomicBoolean done;
-    private AtomicBoolean cartOnField;
+    /**
+     * true -> driving range closed.
+     * false -> driving range open.
+     */
+    private static AtomicBoolean done;
 
-    private static int noGolfers = 0; //shared amongst threads
-    private static int ballsPerBucket; //shared amongst threads
+    /**
+     * Central supply stash.
+     *
+     * @see BallStash
+     */
+    private static BallStash sharedStash;
 
+    /**
+     * Driving range
+     *
+     * @see Range
+     */
+    private static Range sharedField;
+
+    //===INSTANCE VARIABLES===//
+    /**
+     * Identification number for this golfer. Used in print statements.
+     */
     private int myID;
 
-    private golfBall[] golferBucket;
-    private final BallStash sharedStash; //link to shared stash
-    private final Range sharedField; //link to shared field
+    /**
+     * This golfer's bucket. Gets filled at central supply stash.
+     */
+    private GolfBall[] golferBucket;
+
+    /**
+     * This golfer's randomly determined pause between swings.
+     */
     private Random swingTime;
 
-    Golfer(BallStash stash, Range field, AtomicBoolean cartFlag, AtomicBoolean doneFlag)
+    //===CONTRUCTORS===//
+    /**
+     * Instantiates the shared fields and the golfer's bucket. Randomly deter-
+     * mines this golfer's initial swing time. Assigns golfer an ID based on
+     * how many golfers have been created.
+     *
+     * @param stash Central supply stash.
+     * @param field Driving range.
+     * @param doneFlag Shared flag for thread safety.
+     */
+    public Golfer(BallStash stash, Range field, AtomicBoolean doneFlag)
     {
-        sharedStash = stash; //shared 
-        sharedField = field; //shared
-        cartOnField = cartFlag; //shared
+        sharedStash = stash;
+        sharedField = field;
         done = doneFlag;
-        golferBucket = new golfBall[ballsPerBucket];
+        golferBucket = new GolfBall[sharedStash.getSizeBucket()];
         swingTime = new Random();
-        myID = newGolfID();
+        myID = ++noGolfers;
     }
 
-    public static int newGolfID()
+    //===ACCESSORS===//
+    /**
+     * Accessor for myID
+     *
+     * @return This golfer's identification number
+     */
+    public int getID()
     {
-        noGolfers++;
-        return noGolfers;
+        return myID;
     }
 
-    public static void setBallsPerBucket(int noBalls)
-    {
-        ballsPerBucket = noBalls;
-    }
-
-    public static int getBallsPerBucket()
-    {
-        return ballsPerBucket;
-    }
-
+    /**
+     * Starts thread for this golfer.
+     *
+     * While the range is open, this golfer acquires a bucket of balls and
+     * shoots them onto the range. A golfer cannot acquire more balls after the
+     * range has closed. A golfer cannot shoot while Bollie is on the field
+     * collecting balls. Golfers can swing simultaneously and wait in line to
+     * acquire balls, but no two golfers can fill their buckets at the same
+     * time.
+     */
     @Override
     public void run()
     {
         while (!done.get())
         {
             System.out.println(">>> Golfer #" + myID + " trying to fill bucket "
-                    + "with " + ballsPerBucket + " balls.");
-            while (sharedStash.getBallsInStash() < ballsPerBucket)
+                    + "with " + sharedStash.getSizeBucket() + " balls.");
+            try
             {
+                //This golfer acquires a bucket of balls
+                golferBucket = sharedStash.getBucketBalls(golferBucket, this);
             }
-            /*
-             When golfers get balls, only one of them can actually fill up at a time,
-             otherwise getBallsInStash() will subtract multiple fills at once.
-             */
+            catch (InterruptedException e)
+            {
+                Logger.getLogger(Golfer.class.getName()).log(Level.SEVERE, null, e);
+            }
 
-            synchronized (sharedStash)
+            /*
+             * If a golfer has acquired a buckett of balls, he may finish the 
+             * entire bucket even if the range is closed.
+             */
+            for (int b = 0; b < sharedStash.getSizeBucket(); b++)
             {
                 try
                 {
-                    golferBucket = sharedStash.getBucketBalls(golferBucket);
+                    sleep(swingTime.nextInt(2000));
+                    //This golfer shoots a ball from his bucket onto the range
+                    sharedField.hitBallOntoField(golferBucket[b], myID);
                 }
                 catch (InterruptedException e)
                 {
                     Logger.getLogger(Golfer.class.getName()).log(Level.SEVERE, null, e);
+                    e.getMessage();
                 }
-                System.out.println("<<< Golfer #" + myID + " filled bucket with "
-                        + getBallsPerBucket() + " balls (remaining stash = "
-                        + sharedStash.getBallsInStash() + ")");
-            }
-            if (!done.get())
-            {
-                for (int b = 0; b < ballsPerBucket; b++)
-                {
-                    try
-                    {
-                        sleep(swingTime.nextInt(2000));
-                        synchronized (sharedField)
-                        {
-                            while (cartOnField.get())
-                            {
-                            }
-                            sharedField.hitBallOntoField(golferBucket[b]);
-                            System.out.println("Golfer #" + myID + " hit ball #" + golferBucket[b].getID() + " onto field");
-                        }
-                    }
-                    catch (InterruptedException e)
-                    {
-                        Logger.getLogger(Golfer.class.getName()).log(Level.SEVERE, null, e);
-                        e.getMessage();
-                    }
-                }
-            }
-            else
-            {
-                this.stop();
             }
         }
-
     }
 }
