@@ -12,11 +12,22 @@ public class Range
 {
     //===CLASS VARIABLES===//
     /**
-     *
+     * true -> Bollie is currently collecting balls. Golfers can't swing.
+     * false -> Bollie is not on the field. Golfers can swing.
      */
     private static AtomicBoolean cartOnField;
-    
+
+    /**
+     * true -> Range is closed.
+     * false -> Range is open.
+     */
     private static AtomicBoolean done;
+
+    /**
+     * true -> Bollie is holding collected balls to be added to the stash.
+     * false -> Bollie has added his last collection to the stash.
+     */
+    private static AtomicBoolean holding;
 
     //===INSTANCE VARIABLES===//
     /**
@@ -32,9 +43,10 @@ public class Range
      *
      * @param sharedStash Central supply stash.
      */
-    public Range(BallStash sharedStash, AtomicBoolean doneFlag)
+    public Range(BallStash sharedStash, AtomicBoolean doneFlag, AtomicBoolean holdingFlag)
     {
         done = doneFlag;
+        holding = holdingFlag;
         ballsOnField = new ArrayBlockingQueue<>(sharedStash.getSizeStash(), true);
         cartOnField = new AtomicBoolean(false);
     }
@@ -43,28 +55,25 @@ public class Range
     /**
      * Simulated Bollie collecting all the balls that have been hit by golfers
      * onto the field. Golfers cannot play shots while Bollie is on the field.
+     * Locks the field. Golfers are required to acquire the lock to play shots,
+     * so while Bollie is collecting, players wait.
      *
      * @param ballsCollected
      * @throws InterruptedException
      */
-    public void collectAllBallsFromField(ArrayBlockingQueue<GolfBall> ballsCollected) throws InterruptedException
+    public synchronized void collectAllBallsFromField(ArrayBlockingQueue<GolfBall> ballsCollected) throws InterruptedException
     {
-        /*
-         * Golfers must acquire this lock to play shots and the lock is only
-         * released when Bollie leaves the field.
-         */
-        synchronized (this)
+        if (!done.get())
         {
-            if (!done.get())
-            {
-                System.out.println("*********** Bollie collecting balls ************");
-                cartOnField.set(true);
-                ballsOnField.drainTo(ballsCollected);
-                sleep(3000);
-                cartOnField.set(false);
-                System.out.println("*********** Bollie collected " + ballsCollected.size() + " balls from range ***********");
-                sleep(1000);
-            }
+            System.out.println("*********** Bollie collecting balls ************");
+            cartOnField.set(true);
+            ballsOnField.drainTo(ballsCollected);
+            holding.set(true);
+            sleep(3000);
+            cartOnField.set(false);
+            System.out.println("*********** Bollie collected " + ballsCollected.size() + " balls from range ***********");
+            sleep(1000);
+            notifyAll();
         }
     }
 
@@ -75,20 +84,13 @@ public class Range
      * @param ball The ball that was hit by the golfer.
      * @param golferID The golfer that hit the ball.
      */
-    public void hitBallOntoField(GolfBall ball, int golferID)
+    public synchronized void hitBallOntoField(GolfBall ball, int golferID) throws InterruptedException
     {
-        /**
-         * Golfers must acquire this lock to play shots therefore they cannot
-         * play shots while Bollie is collecting (signified by the cartOnField
-         * flag).
-         */
-        synchronized (this)
+        while (cartOnField.get())
         {
-            while (cartOnField.get())
-            {
-            }
-            System.out.println("Golfer #" + golferID + " hit ball #" + ball.getID() + " onto field");
-            ballsOnField.add(ball);
+            wait();
         }
+        System.out.println("Golfer #" + golferID + " hit ball #" + ball.getID() + " onto field");
+        ballsOnField.add(ball);
     }
 }

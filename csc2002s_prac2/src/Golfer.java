@@ -57,6 +57,12 @@ public class Golfer extends Thread
      */
     private Random swingTime;
 
+    /**
+     * true -> returned empty bucket and leaving range
+     * false -> can still play balls
+     */
+    private boolean goHome = false;
+
     //===CONTRUCTORS===//
     /**
      * Instantiates the shared fields and the golfer's bucket. Randomly deter-
@@ -88,6 +94,11 @@ public class Golfer extends Thread
         return myID;
     }
 
+    public void goHome()
+    {
+        goHome = true;
+    }
+
     /**
      * Starts thread for this golfer.
      *
@@ -105,34 +116,42 @@ public class Golfer extends Thread
         {
             System.out.println(">>> Golfer #" + myID + " trying to fill bucket "
                     + "with " + sharedStash.getSizeBucket() + " balls.");
+
             try
             {
-                //This golfer acquires a bucket of balls
                 golferBucket = sharedStash.getBucketBalls(golferBucket, this);
             }
-            catch (InterruptedException e)
+            catch (InterruptedException ex)
             {
-                Logger.getLogger(Golfer.class.getName()).log(Level.SEVERE, null, e);
+                Logger.getLogger(Golfer.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            /*
-             * If a golfer has acquired a buckett of balls, he may finish the 
-             * entire bucket even if the range is closed.
-             */
-            for (int b = 0; b < sharedStash.getSizeBucket(); b++)
+            if (!goHome)
             {
-                try
+                /*
+                 * If a golfer has acquired a bucket of balls, he may finish the
+                 * entire bucket even if the range is closed.
+                 */
+                for (int b = 0; b < sharedStash.getSizeBucket(); b++)
                 {
-                    sleep(swingTime.nextInt(2000));
-                    //This golfer shoots a ball from his bucket onto the range
-                    sharedField.hitBallOntoField(golferBucket[b], myID);
-                }
-                catch (InterruptedException e)
-                {
-                    Logger.getLogger(Golfer.class.getName()).log(Level.SEVERE, null, e);
-                    e.getMessage();
+                    try
+                    {
+                        sleep(swingTime.nextInt(2000));
+                        //This golfer shoots a ball from his bucket onto the range
+                        sharedField.hitBallOntoField(golferBucket[b], myID);
+                    }
+                    catch (InterruptedException e)
+                    {
+                        Logger.getLogger(Golfer.class.getName()).log(Level.SEVERE, null, e);
+                        e.getMessage();
+                    }
                 }
             }
+            else
+            {
+                System.out.println("<<< Golfer #" + myID + " returned empty bucket.");
+            }
         }
+        System.out.println("Golfer #" + myID + " is going home");
     }
 }

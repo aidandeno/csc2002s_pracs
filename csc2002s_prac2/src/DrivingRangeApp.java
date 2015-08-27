@@ -20,6 +20,7 @@ public class DrivingRangeApp
     {
         //flag raised at closing time (determined by Random runTime variable)
         AtomicBoolean done = new AtomicBoolean(false);
+        AtomicBoolean holding = new AtomicBoolean(false);
 
         /*
          * Takes command-line arguments in the form
@@ -33,8 +34,8 @@ public class DrivingRangeApp
         System.out.println("=======   River Club Driving Range Open  ========");
         System.out.println("======= Golfers:" + noGolfers + " | Balls: " + sizeStash + " | BucketSize:" + sizeBucket + "  ======");
 
-        BallStash sharedStash = new BallStash(sizeStash, sizeBucket, done);
-        Range sharedRange = new Range(sharedStash, done);
+        BallStash sharedStash = new BallStash(sizeStash, sizeBucket, done, holding);
+        Range sharedRange = new Range(sharedStash, done, holding);
         Bollie bollie = new Bollie(sharedStash, sharedRange, done);
         //Golfer threads are started
         for (int i = 0; i < noGolfers; i++)

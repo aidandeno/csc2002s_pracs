@@ -57,7 +57,7 @@ public class Bollie extends Thread
         waitTime = new Random();
         done = doneFlag;
     }
-
+    
     /**
      * Starts Bollie's thread.
      *
@@ -85,15 +85,13 @@ public class Bollie extends Thread
                     sharedField.collectAllBallsFromField(ballsCollected);
                 }
                 sleep(2000);
-                if (!done.get())
-                {
-                    sharedStash.addBallsToStash(ballsCollected);
-                }
+                sharedStash.addBallsToStash(ballsCollected);
             }
             catch (InterruptedException e)
             {
                 System.err.println("Thread Interrupted");
             }
         }
+        System.out.println("Bollie is going home");
     }
 }

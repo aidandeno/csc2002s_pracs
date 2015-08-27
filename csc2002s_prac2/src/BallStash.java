@@ -20,6 +20,11 @@ public class BallStash
      */
     private static AtomicBoolean done;
 
+    /**
+     * Bollie is holding collected balls to be added to the stash.
+     */
+    private static AtomicBoolean holding;
+
     //===INSTANCE VARIABLES===//
     /**
      * The maximum number of balls that can be held in the BlockingQueue<>. Also
@@ -56,13 +61,14 @@ public class BallStash
      * @param sizeBucket The number of balls to be dispensed at a time.
      * @param doneFlag Shared flag for thread safety.
      */
-    public BallStash(int sizeStash, int sizeBucket, AtomicBoolean doneFlag)
+    public BallStash(int sizeStash, int sizeBucket, AtomicBoolean doneFlag, AtomicBoolean holdingFlag)
     {
         this.sizeStash = sizeStash;
         this.sizeBucket = sizeBucket;
         stash = new ArrayBlockingQueue<>(sizeStash, true);
         ballsInStash = new AtomicInteger(sizeStash);
         done = doneFlag;
+        holding = holdingFlag;
         for (int i = 0; i < sizeStash; i++)
         {
             stash.add(new GolfBall());
@@ -70,7 +76,6 @@ public class BallStash
     }
 
     //===ACCESSORS===//
-    
     /**
      * Accessor for sizeBucket.
      *
@@ -91,7 +96,6 @@ public class BallStash
         return sizeStash;
     }
 
-    
     //===FUNCTIONS===//
     /**
      * Action method allowing Golfer objects to fill up a bucket with balls.
@@ -105,37 +109,46 @@ public class BallStash
      * @return The golfer's bucket filled with balls.
      * @throws InterruptedException
      */
-    public GolfBall[] getBucketBalls(GolfBall[] golferBucket, Golfer golfer) throws InterruptedException
+    public synchronized GolfBall[] getBucketBalls(GolfBall[] golferBucket, Golfer golfer) throws InterruptedException
     {
-        synchronized (this)
+        //Golfers can only fill their buckets if the range is open.
+        if (!done.get())
         {
-            //Golfers can only fill their buckets if the range is open.
-            if (!done.get())
+            /*
+             * Golfers wait until there are sizeBucket balls available to be
+             * dispensed. If Bollie has gone home, waiting golfers check every
+             * 3000 milliseconds to make sure the range hasn't closed.
+             *
+             */
+            while (ballsInStash.get() < sizeBucket)
             {
-                //Golfers wait until there are sizeBucket balls available to be dispensed
-                while (ballsInStash.get() < sizeBucket)
+                //System.out.println("#" + golfer.getID() + " waiting");
+                wait(3000);
+                //System.out.println("#" + golfer.getID() + " notified");
+                if (done.get())
                 {
-                    //LOOP
+                    golfer.goHome();
+                    return golferBucket;
                 }
-
-                //Bucket is filled
-                for (int i = 0; i < sizeBucket; i++)
-                {
-                    golferBucket[i] = stash.take();
-                }
-                //sizeStash is reset for consistency
-                ballsInStash.set(stash.size());
-
-                System.out.println("<<< Golfer #" + golfer.getID() + " filled bucket with "
-                        + sizeBucket + " balls (remaining stash = "
-                        + ballsInStash.get() + ")");
-                return golferBucket;
             }
-            else
+
+            //Bucket is filled
+            for (int i = 0; i < sizeBucket; i++)
             {
-                System.out.println("<<< Golfer #" + golfer.getID() + " returned empty bucket.");
-                return golferBucket; //empty bucket
+                golferBucket[i] = stash.take();
             }
+            //sizeStash is reset for consistency
+            ballsInStash.set(stash.size());
+
+            System.out.println("<<< Golfer #" + golfer.getID() + " filled bucket with "
+                    + sizeBucket + " balls (remaining stash = "
+                    + ballsInStash.get() + ")");
+            return golferBucket;
+        }
+        else //golfer thread will terminate
+        {
+            golfer.goHome();
+            return golferBucket;
         }
     }
 
@@ -143,15 +156,21 @@ public class BallStash
      * Action method allowing Bollie to add collected balls to the stash.
      *
      * Can be done when range is closed provided Bollie started collecting balls
-     * before closing time.
+     * before closing time. Only executes if Bollie has actually collected
+     * some balls.
      *
      * @param ballsCollected Balls collected from the field by
      * Bollie.
      */
-    public void addBallsToStash(ArrayBlockingQueue<GolfBall> ballsCollected)
+    public synchronized void addBallsToStash(ArrayBlockingQueue<GolfBall> ballsCollected)
     {
-        System.out.println("*********** Bollie adding " + ballsCollected.size() + " balls to stash ************");
-        ballsCollected.drainTo(stash);
-        ballsInStash.set(stash.size());
+        if (holding.get())
+        {
+            System.out.println("*********** Bollie adding " + ballsCollected.size() + " balls to stash ************");
+            ballsCollected.drainTo(stash);
+            ballsInStash.set(stash.size());
+            notifyAll();
+        }
+        holding.set(false);
     }
 }
