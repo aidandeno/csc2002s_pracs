@@ -86,6 +86,6 @@ public class Bollie extends Thread
                 System.err.println("Bollie thread Interrupted");
             }
         }
-        System.out.println("Bollie is going home");
+        System.out.println("+++ Bollie is going home +++");
     }
 }

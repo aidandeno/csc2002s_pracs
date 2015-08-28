@@ -6,7 +6,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Driving range
  *
- * @author Aidan
+ * @author Aidan de Nobrega DNBAID001
+ * @since 26/08/2015
  */
 public class Range
 {

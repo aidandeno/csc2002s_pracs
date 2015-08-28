@@ -1,4 +1,5 @@
 import java.util.Random;
+import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -16,6 +17,8 @@ public class DrivingRangeApp
      */
     private static Random runTime = new Random();
 
+    public static boolean withExtension;
+
     public static void main(String[] args) throws InterruptedException
     {
         //flag raised at closing time (determined by Random runTime variable)
@@ -31,6 +34,12 @@ public class DrivingRangeApp
         int sizeStash = Integer.parseInt(args[1]);
         int sizeBucket = Integer.parseInt(args[2]);
 
+        Scanner scan = new Scanner(System.in);
+
+        System.out.print("How would you like to run the program?\n(1) Without extension\n(2) With extension\nPlease type '1' or '2'\n>>> ");
+        int userInput = scan.nextInt();
+        System.out.println("\n\n\n");
+
         System.out.println("=======   River Club Driving Range Open  ========");
         System.out.println("======= Golfers:" + noGolfers + " | Balls: " + sizeStash + " | BucketSize:" + sizeBucket + "  ======");
 
@@ -39,19 +48,28 @@ public class DrivingRangeApp
             System.out.println("There are no balls. Everyone go home.");
             System.exit(0);
         }
-        
+
         if (sizeBucket <= 0)
         {
             System.out.println("All buckets are broken. Everyone go home.");
         }
-        
+
         BallStash sharedStash = new BallStash(sizeStash, sizeBucket, done, holding);
         Range sharedRange = new Range(sharedStash, done, holding);
         Bollie bollie = new Bollie(sharedStash, sharedRange, done);
+
         //Golfer threads are started
-        for (int i = 0; i < noGolfers; i++)
+        if (userInput == 1)
         {
-            new Golfer(sharedStash, sharedRange, done).start();
+            for (int i = 0; i < noGolfers; i++)
+            {
+                new Golfer(sharedStash, sharedRange, done, Integer.MAX_VALUE).start();
+            }
+        }
+        else
+        {
+            withExtension = true;
+            new GolferGenerator(noGolfers, sharedStash, sharedRange, done).start();
         }
         //Bollie thread is started
         bollie.start();

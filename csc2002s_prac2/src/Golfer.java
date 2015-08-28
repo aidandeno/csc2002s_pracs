@@ -1,3 +1,4 @@
+import static java.lang.Thread.sleep;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -56,6 +57,11 @@ public class Golfer extends Thread
     private Random swingTime;
 
     /**
+     * The number of buckets this golfer has left.
+     */
+    private int numBuckets;
+
+    /**
      * true -> returned empty bucket and leaving range
      * false -> can still play balls
      */
@@ -71,14 +77,19 @@ public class Golfer extends Thread
      * @param field Driving range.
      * @param doneFlag Shared flag for thread safety.
      */
-    public Golfer(BallStash stash, Range field, AtomicBoolean doneFlag)
+    public Golfer(BallStash stash, Range field, AtomicBoolean doneFlag, int buckets)
     {
         sharedStash = stash;
         sharedField = field;
         done = doneFlag;
+        numBuckets = buckets;
         golferBucket = new GolfBall[sharedStash.getSizeBucket()];
         swingTime = new Random();
         golferID = ++numGolfers;
+        if (DrivingRangeApp.withExtension)
+        {
+            System.out.println("+++ Golfer #" + golferID + " has arrived to play " + numBuckets + " bucket(s) +++");
+        }
     }
 
     //===ACCESSORS===//
@@ -110,7 +121,7 @@ public class Golfer extends Thread
     @Override
     public void run()
     {
-        while (!done.get())
+        while (!done.get() && numBuckets > 0)
         {
             System.out.println(">>> Golfer #" + golferID + " trying to fill bucket "
                     + "with " + sharedStash.getSizeBucket() + " balls.");
@@ -145,12 +156,13 @@ public class Golfer extends Thread
                         System.err.println("Golfer #" + golferID + "Interrupted.");
                     }
                 }
+                numBuckets--;
             }
             else
             {
                 System.out.println("<<< Golfer #" + golferID + " returned empty bucket.");
             }
         }
-        System.out.println("Golfer #" + golferID + " is going home");
+        System.out.println("+++ Golfer #" + golferID + " is going home +++");
     }
 }
