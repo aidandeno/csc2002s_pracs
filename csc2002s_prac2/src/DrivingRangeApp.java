@@ -34,6 +34,17 @@ public class DrivingRangeApp
         System.out.println("=======   River Club Driving Range Open  ========");
         System.out.println("======= Golfers:" + noGolfers + " | Balls: " + sizeStash + " | BucketSize:" + sizeBucket + "  ======");
 
+        if (sizeStash <= 0)
+        {
+            System.out.println("There are no balls. Everyone go home.");
+            System.exit(0);
+        }
+        
+        if (sizeBucket <= 0)
+        {
+            System.out.println("All buckets are broken. Everyone go home.");
+        }
+        
         BallStash sharedStash = new BallStash(sizeStash, sizeBucket, done, holding);
         Range sharedRange = new Range(sharedStash, done, holding);
         Bollie bollie = new Bollie(sharedStash, sharedRange, done);

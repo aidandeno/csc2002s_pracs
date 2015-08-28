@@ -19,7 +19,7 @@ public class Bollie extends Thread
      * true -> driving range closed.
      * false -> driving range open.
      */
-    private static AtomicBoolean done;
+    private static AtomicBoolean done;  
 
     /**
      * Link to central supply stash
@@ -57,7 +57,7 @@ public class Bollie extends Thread
         waitTime = new Random();
         done = doneFlag;
     }
-    
+
     /**
      * Starts Bollie's thread.
      *
@@ -76,20 +76,14 @@ public class Bollie extends Thread
             try
             {
                 sleep(waitTime.nextInt(6000));
-                /*
-                 * While Bollie is collecting balls, he acquires the lock
-                 * for the range.
-                 */
-                synchronized (sharedField)
-                {
-                    sharedField.collectAllBallsFromField(ballsCollected);
-                }
+                sharedField.collectBalls(ballsCollected);
                 sleep(2000);
-                sharedStash.addBallsToStash(ballsCollected);
+                sharedStash.replenish(ballsCollected);
             }
             catch (InterruptedException e)
             {
-                System.err.println("Thread Interrupted");
+                System.out.println(e.getMessage());
+                System.err.println("Bollie thread Interrupted");
             }
         }
         System.out.println("Bollie is going home");

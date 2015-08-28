@@ -11,11 +11,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class Range
 {
     //===CLASS VARIABLES===//
-    /**
-     * true -> Bollie is currently collecting balls. Golfers can't swing.
-     * false -> Bollie is not on the field. Golfers can swing.
-     */
-    private static AtomicBoolean cartOnField;
 
     /**
      * true -> Range is closed.
@@ -31,7 +26,9 @@ public class Range
 
     //===INSTANCE VARIABLES===//
     /**
-     *
+     * A collection of the balls that are currently on the field. They are moved
+     * here from golfer's buckets are transported by bollie to the central
+     * stash.
      */
     private BlockingQueue<GolfBall> ballsOnField;
 
@@ -48,7 +45,6 @@ public class Range
         done = doneFlag;
         holding = holdingFlag;
         ballsOnField = new ArrayBlockingQueue<>(sharedStash.getSizeStash(), true);
-        cartOnField = new AtomicBoolean(false);
     }
 
     //===FUNCTIONS===//
@@ -61,16 +57,14 @@ public class Range
      * @param ballsCollected
      * @throws InterruptedException
      */
-    public synchronized void collectAllBallsFromField(ArrayBlockingQueue<GolfBall> ballsCollected) throws InterruptedException
+    public synchronized void collectBalls(ArrayBlockingQueue<GolfBall> ballsCollected) throws InterruptedException
     {
         if (!done.get())
         {
             System.out.println("*********** Bollie collecting balls ************");
-            cartOnField.set(true);
             ballsOnField.drainTo(ballsCollected);
             holding.set(true);
             sleep(3000);
-            cartOnField.set(false);
             System.out.println("*********** Bollie collected " + ballsCollected.size() + " balls from range ***********");
             sleep(1000);
             notifyAll();
@@ -84,12 +78,8 @@ public class Range
      * @param ball The ball that was hit by the golfer.
      * @param golferID The golfer that hit the ball.
      */
-    public synchronized void hitBallOntoField(GolfBall ball, int golferID) throws InterruptedException
+    public synchronized void hitBall(GolfBall ball, int golferID) throws InterruptedException
     {
-        while (cartOnField.get())
-        {
-            wait();
-        }
         System.out.println("Golfer #" + golferID + " hit ball #" + ball.getID() + " onto field");
         ballsOnField.add(ball);
     }

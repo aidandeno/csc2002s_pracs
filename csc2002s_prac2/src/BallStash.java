@@ -81,7 +81,7 @@ public class BallStash
      *
      * @return The bucket size.
      */
-    public int getSizeBucket()
+    public synchronized int getSizeBucket()
     {
         return sizeBucket;
     }
@@ -91,7 +91,7 @@ public class BallStash
      *
      * @return The maximum capacity of the stash.
      */
-    public int getSizeStash()
+    public synchronized int getSizeStash()
     {
         return sizeStash;
     }
@@ -109,22 +109,21 @@ public class BallStash
      * @return The golfer's bucket filled with balls.
      * @throws InterruptedException
      */
-    public synchronized GolfBall[] getBucketBalls(GolfBall[] golferBucket, Golfer golfer) throws InterruptedException
+    public synchronized GolfBall[] fillBucket(GolfBall[] golferBucket, Golfer golfer) throws InterruptedException
     {
         //Golfers can only fill their buckets if the range is open.
         if (!done.get())
         {
             /*
              * Golfers wait until there are sizeBucket balls available to be
-             * dispensed. If Bollie has gone home, waiting golfers check every
+             * dispensed. When Bollie replenishes the stash, notifyAll() is 
+             * called. If Bollie has gone home, waiting golfers check every
              * 3000 milliseconds to make sure the range hasn't closed.
              *
              */
             while (ballsInStash.get() < sizeBucket)
             {
-                //System.out.println("#" + golfer.getID() + " waiting");
                 wait(3000);
-                //System.out.println("#" + golfer.getID() + " notified");
                 if (done.get())
                 {
                     golfer.goHome();
@@ -162,7 +161,7 @@ public class BallStash
      * @param ballsCollected Balls collected from the field by
      * Bollie.
      */
-    public synchronized void addBallsToStash(ArrayBlockingQueue<GolfBall> ballsCollected)
+    public synchronized void replenish(ArrayBlockingQueue<GolfBall> ballsCollected)
     {
         if (holding.get())
         {
