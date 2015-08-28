@@ -13,7 +13,8 @@ CLASSES = \
 	Bollie.java \
         GolfBall.java \
 	Golfer.java \
-	Range.java
+	Range.java \
+	GolferGenerator.java
 	
 default: classes
 
