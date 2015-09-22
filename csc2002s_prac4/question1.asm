@@ -1,10 +1,7 @@
-##Input a number, output a number
-
 .data
-	N: 		.word 5 	#define a variable N that is of type word and has an initial value of 5
 	prompt: 	.asciiz "Enter a series of 5 formulae:\n"
-	reply: 	.asciiz "The values are:\n"
-			.align 4
+	reply: 		.asciiz "The values are:\n"
+		.align 4
 	buffer: 	.space 8
 	arr: 		.space 40
 
